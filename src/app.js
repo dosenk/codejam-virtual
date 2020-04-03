@@ -9,7 +9,7 @@ window.onload = () => {
   addMainConteiner();
   let keybordLang = checkLocalstorage(localStorage);
   const keybord = new Keybord(keybordLang, KEYS, KEY_CODE, noRepeatKeys);
-  Keybord.capsLockChange('.button'); // '.buttonUp' : '.button';
+  // Keybord.capsLockChange('.button'); // '.buttonUp' : '.button';
   // console.log(keydbord.noRepeatKeys);
   keybord.keyUpHandler();
 
@@ -34,7 +34,7 @@ const checkLocalstorage = (localstrg) => {
   } else if (localstrg.lang === 'ru') {
     localStorage.lang = 'ru';
   } else if (localstrg.lang === 'en') {
-    localStorage.lang = 'en';
+    localStorage.lang = 'ru';
   }
   return localstrg.lang;
 };

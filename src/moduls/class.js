@@ -30,32 +30,32 @@ export default class Keybord {
     let langClass = '';
     // div для клавиш
     let buttonDiv;
-    let buttonClass;
+    // let buttonClass;
     // class button - это обычное сосояние ------- class button_up - это при нажатии shift или caps lock
     let flag = true;
     for (const key in this.keys) {
-      // console.log(key);
+      console.log(key);
       switch (key) {
         case 'KEYS_EN':
-          buttonClass = 'button';
+          this.buttonClass = 'button';
           langClass = 'en';
           break;
         case 'KEYS_EN_CAPS':
           langClass = 'en';
-          buttonClass = 'buttonUp';
+          this.buttonClass = 'buttonUp';
           break;
         case 'KEYS_RUS':
-          buttonClass = 'button';
+          this.buttonClass = 'button';
           langClass = 'ru';
           break;
         case 'KEYS_RUS_CAPS':
           langClass = 'ru';
-          buttonClass = 'buttonUp';
+          this.buttonClass = 'buttonUp';
           break;
         default:
           throw new Error('no keys in CONST.js');
       }
-      // console.log(this.keys[key]);
+      
 
       this.keys[key].forEach((elem, index) => {
        
@@ -63,23 +63,28 @@ export default class Keybord {
           buttonsArray[index] = [];
           keyMap[index] = [];
           buttonDiv = Keybord.createButton('div', `${this.defaultButtonClass}`, `${this.keyCode[index]}`);
-          let buttonSpanRu = Keybord.createButton('span', 'ru');
-          let buttonSpanEn = Keybord.createButton('span', 'en');
+          this.buttonSpanRu = Keybord.createButton('span', 'ru');
+          this.buttonSpanEn = Keybord.createButton('span', 'en');
           if (this.language === 'ru') {
-            buttonSpanRu.classList.add('active');
+            this.buttonSpanRu.classList.add('active');
           } else if (this.language === 'en') {
-            buttonSpanEn.classList.add('active');
+            this.buttonSpanEn.classList.add('active');
           }
-          buttonDiv.append(buttonSpanRu, buttonSpanEn);
+          buttonDiv.append(this.buttonSpanRu, this.buttonSpanEn);
           keyMap[index] = buttonDiv;
         }
-     
+        console.log(buttonDiv.querySelector(`.${this.language}`).classList.contains('active'));
         // обрезаем одинаковые клавиши
         // if (buttonsArray[index].indexOf(elem) >= 0 && index > 12 ) return; 
 
         buttonDiv = keyMap[index];
         // создаем span для каждой буквы
-        let button = Keybord.createButton('span', buttonClass);
+        // console.log(typeof this.buttonClass);
+        let activeButtonClass;
+        if (buttonDiv.querySelector(`.${this.language}`).classList.contains('active') && this.buttonClass === 'button') {
+          activeButtonClass = 'active-button';
+        } 
+        let button = Keybord.createButton('span', this.buttonClass, activeButtonClass);
 
         // ищем span по классу ru en
         buttonDiv.childNodes.forEach((span) => {
@@ -103,12 +108,18 @@ export default class Keybord {
 
   static capsLockChange(button) {
     // let selector = this.capsLock ? '.buttonUp' : '.button';
-    let allactiveButton = document.querySelectorAll(`.active ${button}`);
+    let allactiveButton = document.querySelectorAll(`.active`);
+    console.log(allactiveButton[0].childNodes);
       allactiveButton.forEach(elem => {
-      elem.classList.add('active-button');
+        console.log(elem.childNodes);
+      elem.childNodes.forEach(item => {
+        item.classList.toggle('active-button');
+      })
+      // elem.classList.remove('active-button');
+      // elem.classList.add('active-button');
       })
       // console.log(allactiveButton);
-    return allactiveButton;
+    // return allactiveButton;
   }
 
   
@@ -118,8 +129,14 @@ keyUpHandler = () => {
     if (this.keyCode.indexOf(key) >= 0) {
       if (this.repeatFlag) {
         console.log(key, '    -----      now click button');
+        // drow activ button
         this.clickedButton = document.querySelector(`.${key}`);
         this.clickedButton.classList.add('clicked-button');
+
+        if (key === 'CapsLock') {
+          Keybord.capsLockChange('.buttonUp');
+        }
+
 
         this.repeatFlag = false;
         console.log('key UP -> work')
