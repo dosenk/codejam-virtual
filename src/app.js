@@ -7,8 +7,8 @@ import {
 window.onload = () => {
   // console.log(noRepeatKeys);
   addMainConteiner();
-  let keybordLang = checkLocalstorage(localStorage);
-  const keybord = new Keybord(keybordLang, KEYS, KEY_CODE, noRepeatKeys);
+  let lang1 = Keybord.checkLocalstorage(localStorage);
+  const keybord = new Keybord(lang1.lang, KEYS, KEY_CODE, noRepeatKeys);
   // Keybord.capsLockChange('.button'); // '.buttonUp' : '.button';
   // console.log(keydbord.noRepeatKeys);
   keybord.keyUpHandler();
@@ -25,16 +25,4 @@ const addMainConteiner = () => {
   textAreaDiv.append(textArea);
   mainDiv.append(textAreaDiv, keydbord);
   document.body.append(mainDiv);
-};
-
-const checkLocalstorage = (localstrg) => {
-  // console.log(localStorage.lang);
-  if (typeof localstrg.lang === 'undefined') {
-    localStorage.lang = 'ru';
-  } else if (localstrg.lang === 'ru') {
-    localStorage.lang = 'ru';
-  } else if (localstrg.lang === 'en') {
-    localStorage.lang = 'ru';
-  }
-  return localstrg.lang;
 };
