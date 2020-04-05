@@ -64,7 +64,8 @@ body {
   margin: auto;
 }
 
-.clicked-button {
+.clicked-button,
+.clicked-button-capslock {
   background-color: brown;
 }
 
