@@ -120,8 +120,9 @@ keyDownHandler = () => {
     event.preventDefault(); 
     let key = e.code;
     let defaultKeyValue = e.key;
-    // console.log(key);
     if (this.keyCode.indexOf(key) >= 0) {
+      console.log(defaultKeyValue);
+
       if (key === 'CapsLock') {
         if (e.repeat) return;
           this.capsLock = this.capsLock === 'button' ? 'buttonUp' : 'button';
@@ -129,8 +130,12 @@ keyDownHandler = () => {
           document.querySelector(`.${key}`).classList.toggle('clicked-button-capslock');
           return;
       }
+      console.log(defaultKeyValue);
+
       // добавляем в массив нажатых клавиш кроме CapsLock, чтобы при buttonUp их отдуда удалить
       if (!this.clickedButton.includes(key)) this.clickedButton.push(key); 
+      console.log(defaultKeyValue);
+
       if (e.altKey && e.shiftKey) {
         if (e.repeat) return;
           this.language = localStorage.lang = localStorage.lang === 'ru' ? 'en' : 'ru';
@@ -157,16 +162,19 @@ keyDownHandler = () => {
       let nowClickedButton = document.querySelector(`.${key}`);
       nowClickedButton.classList.add('clicked-button');
       let keyValue = this.getLetter(key); // get letter
-      // console.log(keyValue);
+      console.log(keyValue);
       let selectionStart = this.input.selectionStart;
       let selectionEnd = this.input.selectionEnd;
 
       if (defaultKeyValue === 'Backspace' || defaultKeyValue === 'Delete') {
+
         if (defaultKeyValue === 'Backspace') {
           if (selectionEnd === 0) return;
           if (selectionEnd === selectionStart)  selectionStart --;
         }
         if (defaultKeyValue === 'Delete') {
+    console.log(key);
+
           if (this.input.value.length <= 0) return;
         if (selectionEnd === selectionStart)  selectionEnd ++;
         }
