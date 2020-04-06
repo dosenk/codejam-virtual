@@ -12,6 +12,7 @@ export default class Keybord {
     this.drowKeybord();
     this.input = document.querySelector('textarea');
     this.spanLenght = 0;
+    this.capsLockFlag = false;
   }
 
   static createButton(tagName, ...classes) {
@@ -27,10 +28,10 @@ export default class Keybord {
     // массив для хранения cимволов
     let buttonsArray = [];
     // класс ru - en
-    let langClass = '';
+    let langClass;
     // div для клавиш
     let buttonDiv;
-    // let buttonClass;
+    let buttonClass;
     // class button - это обычное сосояние ------- class button_up - это при нажатии shift или caps lock
     let flag = true;
     // console.log(this.keys)
@@ -38,20 +39,20 @@ export default class Keybord {
     for (const key in this.keys) {
       switch (key) {
         case 'KEYS_EN':
-          this.buttonClass = 'button';
+          buttonClass = 'button';
           langClass = 'en';
           break;
         case 'KEYS_EN_CAPS':
           langClass = 'en';
-          this.buttonClass = 'buttonUp';
+          buttonClass = 'buttonUp';
           break;
         case 'KEYS_RU':
-          this.buttonClass = 'button';
+          buttonClass = 'button';
           langClass = 'ru';
           break;
         case 'KEYS_RU_CAPS':
           langClass = 'ru';
-          this.buttonClass = 'buttonUp';
+          buttonClass = 'buttonUp';
           break;
         default:
           throw new Error('no keys in CONST.js');
@@ -63,6 +64,7 @@ export default class Keybord {
           buttonsArray[index] = [];
           keyMap[index] = [];
           buttonDiv = Keybord.createButton('div', `${this.defaultButtonClass}`, `${this.keyCode[index]}`);
+          buttonDiv.setAttribute('id', `${index}`);
           this.buttonSpanRu = Keybord.createButton('span', 'lang', 'ru');
           this.buttonSpanEn = Keybord.createButton('span', 'lang', 'en');
           let buttonSpanUpEn = Keybord.createButton('span', 'buttonUp');
@@ -86,9 +88,9 @@ export default class Keybord {
 
         let div = buttonDiv.querySelector(`.${langClass}`);
         div.childNodes.forEach((span) => {
-          if (span.classList.contains(this.buttonClass)) {
+          if (span.classList.contains(buttonClass)) {
             span.innerText = elem;
-            if (div.classList.contains('active') && this.buttonClass === 'button') {
+            if (div.classList.contains('active') && buttonClass === 'button') {
               span.classList.add('active-button');
             }
           }
@@ -99,7 +101,6 @@ export default class Keybord {
           mainDiv.append(buttonDiv);
         }
       });
-
       this.keybordCount ++;
     }
   }
@@ -115,66 +116,90 @@ export default class Keybord {
   }
 
 // ####################################################### keydown #############################################################
-keyDownHandler = () => {
-  document.addEventListener('keydown', (e) => {
-    event.preventDefault(); 
-    let key = e.code;
-    let defaultKeyValue = e.key;
+addListenersOnKeys() {
+  document.addEventListener('keydown', (event) => this.keyDownHandler(event));
+  document.addEventListener('keyup', (event) => this.keyUpHandler(event));
+  document.addEventListener('mousedown', (event) => this.mouseDownHundler(event));
+  document.addEventListener('mouseup', (event) => this.mouseUpHundler(event));
+}
+
+mouseDownHundler(e) {
+  if (e.target.classList.contains('active-button')) {
+      let id = e.target.parentNode.parentNode.getAttribute('id');
+      this.clickedMouseElem = this.keyCode[id];
+      // console.log(this.clickedMouseElem);
+      this.keyDownHandler(e, this.clickedMouseElem);
+  }
+}
+mouseUpHundler(e) {
+  document.querySelectorAll('.clicked-button').forEach(elem => {
+    elem.classList.remove('clicked-button');
+  })
+  this.keyUpHandler(e, this.clickedMouseElem);
+
+}
+
+keyDownHandler(e, keyButton = null) {
+    event.preventDefault();
+    let key = keyButton === null ? e.code : keyButton;
+
     if (this.keyCode.indexOf(key) >= 0) {
-      console.log(defaultKeyValue);
 
       if (key === 'CapsLock') {
         if (e.repeat) return;
-          this.capsLock = this.capsLock === 'button' ? 'buttonUp' : 'button';
-          this.renderActiveButton(this.language);
+          this.capsLockFlag = this.capsLockFlag ? false : true;
+          let capslock = this.capsLockFlag ? 'buttonUp' : 'button' ;
+          this.renderActiveButton(this.language, capslock);
           document.querySelector(`.${key}`).classList.toggle('clicked-button-capslock');
           return;
       }
-      console.log(defaultKeyValue);
-
       // добавляем в массив нажатых клавиш кроме CapsLock, чтобы при buttonUp их отдуда удалить
       if (!this.clickedButton.includes(key)) this.clickedButton.push(key); 
-      console.log(defaultKeyValue);
 
-      if (e.altKey && e.shiftKey) {
-        if (e.repeat) return;
-          this.language = localStorage.lang = localStorage.lang === 'ru' ? 'en' : 'ru';
-          document.querySelectorAll('.lang').forEach(span => {
-            span.classList.toggle('active');
-            span.childNodes.forEach(span => span.classList.remove('active-button'))
-          })
-          this.renderActiveButton(this.language);
+    if (e.shiftKey && e.altKey) {
+      if (e.repeat) return;
+      if (this.clickedButton.includes('ShiftLeft') && this.clickedButton.includes('AltLeft')) {
+        this.language = localStorage.lang = localStorage.lang === 'ru' ? 'en' : 'ru';
+        document.querySelectorAll('.lang').forEach(span => {
+        span.classList.toggle('active');
+        span.childNodes.forEach(span => span.classList.remove('active-button'))
+          let capslock = this.capsLockFlag ? 'button' : 'buttonUp' ;
+        })  
+        let capslock = this.capsLockFlag ? 'button' : 'buttonUp' ;
+        this.renderActiveButton(this.language, capslock);
+        return       
       }
-      if (defaultKeyValue === 'Alt' || defaultKeyValue === 'Control' || defaultKeyValue === 'Meta' || defaultKeyValue === 'AltGraph') {
+    }
+     
+      if (key === 'ShiftLeft' || key === 'ShiftRight') { 
+        let capslock = this.capsLockFlag ? 'button' : 'buttonUp' ;
+        document.querySelector(`.ShiftLeft`).classList.remove('clicked-button-capslock');
+        document.querySelector(`.ShiftRight`).classList.remove('clicked-button-capslock');
+        document.querySelector(`.${key}`).classList.add('clicked-button-capslock');
+        if (e.repeat) return;
+        // if (this.clickedButton.includes('ShiftLeft') && this.clickedButton.includes('ShiftRight')) return;
+        this.renderActiveButton(this.language, capslock);
+        return
+      }
+    
+      if (key === 'AltLeft' || key === 'AltRight' || key === 'ControlLeft' || key === 'ControlRight' || key === 'MetaLeft') {
         document.querySelector(`.${key}`).classList.add('clicked-button');
         if (e.repeat) return;
         return;
       }
-      if (key === 'ShiftLeft' || key === 'ShiftRight' ) {
-        // if (this.clickedButton.indexOf('ShiftLeft') >= 0 && this.clickedButton.indexOf('ShiftRight') >= 0) return; // при двух нажатых Shift
-        if (e.repeat) return;
-            this.capsLock = this.capsLock === 'button' ? 'buttonUp' : 'button';
-            this.renderActiveButton(this.language);
-            document.querySelector(`.${key}`).classList.add('clicked-button-capslock');
-            return
-      } 
+  
+      this.changeActiveButton(key, true);
 
-      let nowClickedButton = document.querySelector(`.${key}`);
-      nowClickedButton.classList.add('clicked-button');
       let keyValue = this.getLetter(key); // get letter
-      console.log(keyValue);
       let selectionStart = this.input.selectionStart;
       let selectionEnd = this.input.selectionEnd;
 
-      if (defaultKeyValue === 'Backspace' || defaultKeyValue === 'Delete') {
-
-        if (defaultKeyValue === 'Backspace') {
+      if (key === 'Backspace' || key === 'Delete') {
+        if (key === 'Backspace') {
           if (selectionEnd === 0) return;
           if (selectionEnd === selectionStart)  selectionStart --;
         }
-        if (defaultKeyValue === 'Delete') {
-    console.log(key);
-
+        if (key === 'Delete') {
           if (this.input.value.length <= 0) return;
         if (selectionEnd === selectionStart)  selectionEnd ++;
         }
@@ -192,33 +217,36 @@ keyDownHandler = () => {
       this.input.value = this.input.value.slice(0, selectionStart) + keyValue + this.input.value.slice(selectionEnd);
       this.input.selectionStart = this.input.selectionEnd = selectionStart + 1; 
     }
-
-  });
 };
 
 // ######################################################### keyup #############################################################
-  keyUpHandler = () => {
-    document.addEventListener('keyup', (e) => {
-      let key = e.code;
-      event.preventDefault();
+  keyUpHandler(e, keyButton = null) {
+      e.preventDefault();
+      let key = keyButton === null ? e.code : keyButton;
+      // console.log(this.capsLock)
+      
       if (key === 'CapsLock') return;
-
-      if (key === 'ShiftLeft' || key === 'ShiftRight') {
-        this.capsLock = this.capsLock === 'button' ? 'buttonUp' : 'button';
-        this.renderActiveButton(this.language);
-        document.querySelector(`.${key}`).classList.remove('clicked-button-capslock');
-        // console.log(key);
+      
+      if (key === 'ShiftLeft'|| key === 'ShiftRight') {
+        document.querySelector(`.ShiftLeft`).classList.remove('clicked-button-capslock');
+        document.querySelector(`.ShiftRight`).classList.remove('clicked-button-capslock');
+        this.clickedButton.splice(this.clickedButton.indexOf(key), 1);
+        
+        if (this.clickedButton.indexOf('ShiftLeft') >= 0 && this.clickedButton.indexOf('ShiftRight') >= 0) {
+        this.clickedButton.splice(this.clickedButton.indexOf('ShiftLeft'), 1);
+        this.clickedButton.splice(this.clickedButton.indexOf('ShiftRight'), 1);
+        }
+        let capslock = !this.capsLockFlag ? 'button' : 'buttonUp' ;
+        this.renderActiveButton(this.language, capslock);
+        
+        
         return;
       } 
-
       // все клавиши за исключением capsLock и Shift
       if (this.clickedButton.includes(key)) {
         this.clickedButton.splice(this.clickedButton.indexOf(key), 1);
-        document.querySelector(`.${key}`).classList.remove('clicked-button');
+        this.changeActiveButton(key, false);
       }
-
-    });
-  
   };
 
   static checkLocalstorage(localstrg) {
@@ -229,12 +257,12 @@ keyDownHandler = () => {
     return localstrg;
   };
 
-  renderActiveButton(language) {
+  renderActiveButton(language, capslock) {
     let activeLangSpan = document.querySelectorAll(`.${language}`);
     activeLangSpan.forEach((span) => {
       span.childNodes.forEach(span => {
         span.classList.remove('active-button');
-        if (span.classList.contains(this.capsLock)) span.classList.add('active-button');
+        if (span.classList.contains(capslock)) span.classList.add('active-button');
       })
       });
   }
@@ -251,5 +279,11 @@ keyDownHandler = () => {
       return this.keys[`KEYS_${lang}_CAPS`][keyIndex];
     }
     return this.keys[`KEYS_${lang}`][keyIndex];
+  }
+
+  changeActiveButton(key, flag) {
+    let nowClickedButton = document.querySelector(`.${key}`);
+    if (flag) nowClickedButton.classList.add('clicked-button');
+    else nowClickedButton.classList.remove('clicked-button');
   }
 }
